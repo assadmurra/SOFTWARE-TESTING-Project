@@ -1,0 +1,5 @@
+id,graph,algorithm,depth,result,path,cost
+bfs,weighted,bfs,5,found,S>A>G,16
+ucs,weighted,ucs,5,found,S>B>C>G,3
+astar,weighted,astar,5,found,S>B>C>G,3
+absent,disconnected,bfs,5,missing,,
