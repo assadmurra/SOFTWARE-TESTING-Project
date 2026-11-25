@@ -1,0 +1,13 @@
+{
+  "metadata": { "is_undirected": true },
+  "graph": {
+    "nodes": [
+      { "name": "S", "x": 100, "y": 100, "heuristic": 3, "neighbors": { "A": 4, "B": 1 } },
+      { "name": "A", "x": 200, "y": 50,  "heuristic": 2, "neighbors": { "S": 4, "B": 1, "G": 2 } },
+      { "name": "B", "x": 200, "y": 150, "heuristic": 2, "neighbors": { "S": 1, "A": 1 } },
+      { "name": "G", "x": 300, "y": 100, "heuristic": 0, "neighbors": { "A": 2 } }
+    ],
+    "source": "S",
+    "goals": ["G"]
+  }
+}

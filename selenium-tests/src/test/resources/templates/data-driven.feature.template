@@ -1,0 +1,24 @@
+# =============================================================================
+#  GENERATED FILE - DO NOT EDIT.
+#  Built by edu.swer312.data.DataFeatureGenerator from: {{SOURCE}}
+#  To add a test case, add a row to the data file; it runs automatically.
+#  Template: src/test/resources/templates/data-driven.feature.template
+# =============================================================================
+@data
+Feature: Data-driven search cases from {{SOURCE}}
+  Each row of the external data file is one scenario: upload the row's graph,
+  run the row's algorithm and compare the visible result with the row's
+  expected outcome (found / no_path / alert).
+
+  Scenario Outline: [<id>] <description>
+    Given the visualizer is ready
+    And graph "<graph>" is loaded
+    When I run "<algorithm>" with depth <depth>
+    Then the search outcome matches
+      | outcome   | <outcome>   |
+      | path      | <path>      |
+      | cost      | <cost>      |
+      | traversal | <traversal> |
+      | message   | <message>   |
+
+{{EXAMPLES}}
