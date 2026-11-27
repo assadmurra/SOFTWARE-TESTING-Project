@@ -24,7 +24,8 @@ what the application displays. The application code was not changed.
 | Item | Value |
 |---|---|
 | Language / build | Java 17+, Maven 3.9+ |
-| Libraries | Selenium 4.38, Cucumber 7.30 (JUnit Platform), cucumber-picocontainer, Apache Commons CSV, Apache POI (Excel) |
+| Libraries | Selenium 4.38, Cucumber 7.30 (JUnit Platform), cucumber-picocontainer, Apache Commons CSV, Apache POI (Excel), Allure 3.1 (allure-cucumber7-jvm) |
+| Reports | Cucumber HTML and Allure (interactive, or a single HTML file) |
 | Design pattern | Page Object Model (POM) |
 | Scenarios | **103** (53 written in Gherkin + 50 generated from CSV / Excel rows) |
 | Browsers | Chrome, Firefox, Edge |
@@ -55,9 +56,51 @@ python -m http.server 8000
 | **All three browsers, one command** | `run-all-browsers.bat` (Windows) or `./run-all-browsers.sh` (Mac / Linux) |
 | Watch the browser | add `-Dheadless=false` |
 
-**Reports:** `target/cucumber.html` (open it in a browser), `target/cucumber.json` and
-`target/surefire-reports/`. A failed scenario has a screenshot attached in the HTML report.
-`run-all-browsers` keeps one report per browser in `target/reports/<browser>/`.
+### Reports
+
+Every run produces two reports. A failed scenario has a screenshot attached in both.
+
+| Report | Where | How to open |
+|---|---|---|
+| Cucumber HTML | `target/cucumber.html` | Double-click it |
+| Allure (raw results) | `target/allure-results/` | `mvn allure:serve` (see below) |
+| Allure (single file) | `target/allure-report/index.html` | Run `mvn allure:report` once, then double-click the file |
+
+**Allure report.** Allure shows the results as a dashboard:
+- **Overview:** pass rate, run time, and an **Environment** box with the browser name and version,
+  the operating system and the Java version.
+- **Suites:** scenarios grouped by feature.
+- **Behaviors:** scenarios grouped by tag (`@smoke`, `@ui`, `@algorithm`, `@data`, ...) and then
+  by feature.
+- **Each scenario:** its steps, timings and, if it failed, the screenshot.
+
+You don't have to install Allure: the Allure Maven plugin downloads the Allure tool the first
+time it is needed.
+
+| Goal | Command (run after the tests) |
+|---|---|
+| Open the interactive report in a browser (stop it with Ctrl+C) | `mvn allure:serve` |
+| Build a **single HTML file** that opens with a double-click, without Allure installed | `mvn allure:report` → `target/allure-report/index.html` |
+
+The single-file report contains everything (data, screenshots, styles) in one HTML file, so it
+can be sent to someone or attached to a submission and opened without any tools. If you already
+have the Allure command line installed, `allure serve target/allure-results` and
+`allure generate --single-file target/allure-results` do the same.
+
+**Reports for every browser.** `run-all-browsers` keeps a separate copy for each browser in
+`target/reports/<browser>/`:
+
+```
+target/reports/chrome/
+├── cucumber.html          Cucumber report
+├── allure-report.html     single-file Allure report (double-click)
+├── allure-results/        raw Allure results (allure serve target/reports/chrome/allure-results)
+└── surefire-reports/      JUnit XML and text summary
+```
+
+> **Windows note:** the Allure tool's Windows launcher fails when the project folder path contains
+> an `&` (for example `Testing&QA`). The tests and the Cucumber report are not affected. To generate
+> Allure reports, keep the project in a folder whose path has no `&`.
 
 ---
 
@@ -373,9 +416,9 @@ times are in [VERIFICATION.md](VERIFICATION.md).
 
 | Browser | Version | Scenarios | Passed | Failed | Skipped (`@known-bug`) | Time |
 |---|---|---:|---:|---:|---:|---:|
-| Chrome | 157.0 | 103 | 99 | 0 | 4 | 5 min 53 s |
-| Firefox | 161.0 | 103 | 99 | 0 | 4 | 19 min 19 s |
-| Edge | 158.0 | 103 | 99 | 0 | 4 | 7 min 0 s |
+| Chrome | 157.0 | 103 | 99 | 0 | 4 | 7 min 38 s |
+| Firefox | 161.0 | 103 | 99 | 0 | 4 | 15 min 50 s |
+| Edge | 158.0 | 103 | 99 | 0 | 4 | 8 min 13 s |
 | **Total** | | **309** | **297** | **0** | **12** | |
 
 The 4 skipped scenarios per browser are the `@known-bug` scenarios from section 5.3, which are

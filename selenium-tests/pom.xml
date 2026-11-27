@@ -14,6 +14,8 @@
     <threads>3</threads>
     <!-- Cucumber tag expression; scenarios documenting open application bugs are excluded by default -->
     <tags>not @known-bug</tags>
+    <!-- Allure reporting: raw results are written here during the test run -->
+    <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
   </properties>
   <dependencies>
     <dependency>
@@ -66,6 +68,13 @@
       <version>5.4.1</version>
       <scope>test</scope>
     </dependency>
+    <!-- Allure report: Cucumber plugin that records every scenario, step and attachment -->
+    <dependency>
+      <groupId>io.qameta.allure</groupId>
+      <artifactId>allure-cucumber7-jvm</artifactId>
+      <version>3.1.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -73,6 +82,48 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.14.1</version>
+      </plugin>
+      <!-- Start every run with an empty Allure results folder, so old results never mix in -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>clean-allure-results</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+            <configuration>
+              <excludeDefaultDirectories>true</excludeDefaultDirectories>
+              <filesets>
+                <fileset>
+                  <directory>${allure.results.directory}</directory>
+                </fileset>
+              </filesets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!--
+        Allure report generation: "mvn allure:report" builds target/allure-report/index.html as ONE
+        self-contained file (opens with a double-click), "mvn allure:serve" opens the interactive
+        report. Maven downloads the Allure command-line tool itself; nothing has to be installed.
+      -->
+      <plugin>
+        <groupId>io.qameta.allure</groupId>
+        <artifactId>allure-maven</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <reportVersion>2.46.2</reportVersion>
+          <!-- Outside the project folder: keeps the tool out of git, and away from special characters
+               (such as "&") in the project path, which break Allure's Windows launcher -->
+          <installDirectory>${user.home}/.allure</installDirectory>
+          <resultsDirectory>${allure.results.directory}</resultsDirectory>
+          <reportDirectory>${project.build.directory}/allure-report</reportDirectory>
+          <singleFile>true</singleFile>
+        </configuration>
       </plugin>
       <!--
         Data-driven testing: after the test classes are compiled, turn every row of
@@ -120,6 +171,7 @@
             <headless>${headless}</headless>
             <baseUrl>${baseUrl}</baseUrl>
             <cucumber.filter.tags>${tags}</cucumber.filter.tags>
+            <allure.results.directory>${allure.results.directory}</allure.results.directory>
             <cucumber.execution.parallel.enabled>${parallel}</cucumber.execution.parallel.enabled>
             <cucumber.execution.parallel.config.strategy>fixed</cucumber.execution.parallel.config.strategy>
             <cucumber.execution.parallel.config.fixed.parallelism>${threads}</cucumber.execution.parallel.config.fixed.parallelism>
