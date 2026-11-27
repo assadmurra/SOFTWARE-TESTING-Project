@@ -1,61 +1,71 @@
-# Verification report
+# Test Results
 
-Assignment PDF was successfully extracted and read. Implementation uses the supplied `SelProj.zip` checkout with origin `ashfaknawshad/aisearch-v2`. No application source, styles, vendor files or startup scripts were changed: every non-Git file from the original application archive was compared byte-for-byte. The archive arrived with CRLF differences relative to its Git index; those are pre-existing and were preserved.
+Final verification of the Selenium + Cucumber suite described in [README.md](README.md).
 
-## Files added
+## Environment
 
-- `.gitignore`, `pom.xml`, `README.md`, `VERIFICATION.md`
-- `src/test/java/edu/swer312/RunCucumberTest.java`
-- `src/test/java/edu/swer312/Steps.java`
-- `src/test/java/edu/swer312/VisualizerPage.java`
-- `src/test/resources/features/search.feature`, `ui.feature`, `data.feature`
-- `src/test/resources/data/searches.csv`
-- `src/test/resources/graphs/weighted.json`, `disconnected.json`
+| Item | Value |
+|---|---|
+| Date | 27 November 2026 |
+| Operating system | Windows 11 Pro |
+| Java / Maven | Temurin JDK 21.0.7 (compiled for Java 17), Apache Maven 3.9.12 |
+| Selenium / Cucumber | Selenium 4.38.0, Cucumber 7.30.0 (JUnit Platform) |
+| Application server | `python -m http.server 8000` from the repository root |
+| Browsers | Google Chrome 157.0.8103.80, Mozilla Firefox 161.0, Microsoft Edge 158.0.4370.33 |
+| Drivers | Resolved automatically by Selenium Manager |
+| Mode | Headless, parallel with 4 threads (`-Dparallel=true -Dthreads=4`) |
+| Command | `run-all-browsers.bat` (runs the three browsers one after another) |
 
-All paths are relative to `selenium-tests/`. Application changes: none.
+## Final results
 
-## Setup and diagnoses
+| Browser | Scenarios | Passed | Failed | Errors | Skipped | Time |
+|---|---:|---:|---:|---:|---:|---:|
+| Chrome 157 | 103 | 99 | 0 | 0 | 4 | 352.6 s |
+| Firefox 161 | 103 | 99 | 0 | 0 | 4 | 1159 s |
+| Edge 158 | 103 | 99 | 0 | 0 | 4 | 419.6 s |
+| **Total** | **309** | **297** | **0** | **0** | **12** | |
 
-The application was started with:
+The skipped scenarios are the 4 `@known-bug` scenarios. They describe correct behaviour that the
+application does not have yet (see README section 5.3) and are excluded by the default tag filter
+`not @known-bug`.
 
-```sh
-python3 -m http.server 8000 --directory work/SelProj/aisearch-v2
-```
+Running only the bug scenarios on Chrome (`mvn test -Dtags=@known-bug`) executed the 4 scenarios,
+and all 4 failed as expected, confirming the bugs are still present:
 
-Maven 3.9.11 and Temurin JDK 21.0.13 were provisioned under `work/tools/`. Maven's local repository and Java user home were kept under `work/cache/`. The initial environment had Java runtime 21 but no matching JDK compiler; the exact compile blocker was `error: release version 17 not supported`. A project-local JDK fixed it. Java/Maven also needed the managed proxy and CA store for initial dependency downloads; ordinary direct resolution failed with `Network is unreachable`. No TLS verification was disabled. The final tests ran from the downloaded dependency cache.
+| Scenario | Failure |
+|---|---|
+| A duplicate node name is replaced by a default name | no alert `Node "A" already exists` was shown |
+| Cancelling the confirmation keeps the current graph | 4 edges instead of 5: the example was loaded although Cancel was pressed |
+| A JSON file without a graph section does not replace the current graph | the search did not run: the graph had been cleared |
+| The edge count includes the edges added by switching to undirected | the statistics show 1 edge instead of 2 |
 
-ChromeDriver first exercised preinstalled Chromium 156.0.8078.79. The smoke passed (1 executed, 15 filtered); the first full run passed 15 and errored in IDS because the test tried to edit its hidden depth field. The test was fixed to select DLS, set the visible depth field, then select IDS. Corrected serial and parallel Chromium runs passed all 16.
+Smoke runs (`run-all-browsers.bat -Dtags=@smoke` and `./run-all-browsers.sh -Dtags=@smoke`)
+executed the 12 `@smoke` scenarios on each browser with 0 failures.
 
-Google Chrome 157.0.8103.78 was then downloaded from Google's official Linux distribution, with matching ChromeDriver 157.0.8103.x, and independently smoke-tested before its full runs. Chrome and Chromium are reported separately below.
+## Reports
 
-Firefox 160.0 with geckodriver 0.36.0 initially failed all 16 scenario setup hooks in the command sandbox with `Process unexpectedly closed with status 1`. A direct reproduction printed `Could not find profile folder`. The identical browser started successfully outside that command sandbox, and the full runs were retried there. This is an executor restriction; no workaround or sandbox change was added to the submitted Java code.
+Each browser run produces:
 
-Edge 155.0.4283.62 with matching EdgeDriver initially failed UI setup because its small default window made native select options unavailable (`ElementNotInteractableException: Element is not currently visible and may not be manipulated`). Setting a common 1440×1100 browser window fixed the test setup. No application change was required.
+- `target/reports/<browser>/cucumber.html`: readable report with every scenario and step
+- `target/reports/<browser>/cucumber.json`: machine-readable results
+- `target/reports/<browser>/surefire-reports/`: JUnit XML and text summary
 
-Cucumber uses a fixed scenario pool and an explicit maximum pool size of three for the final parallel runs. Each scenario creates and closes its own WebDriver. Google Chrome and Firefox verification used isolated copies of the same Maven sources to avoid overwriting another browser's reports during simultaneous verification. Their final parallel runs use the submitted Java sources.
+`target/` is rebuilt by Maven, so copy these folders elsewhere if they need to be kept.
 
-Selenium printed CDP-version warnings for these newer browsers. The tests use the standard WebDriver API and do not require CDP. JUnit also printed a non-fatal classpath-selector discovery warning. Neither warning prevented execution.
+## Problems found and fixed during verification
 
-## Local reproduction
+| Problem | Cause | Fix |
+|---|---|---|
+| Firefox only: "The first node asks for the graph type and a name" failed (*The node name dialog should be open*) | The step checked the dialog once, immediately. The app opens it a moment after the graph-type dialog closes, and Firefox under parallel load is slower than Chrome and Edge | Replaced the immediate check with an explicit wait (`waitForNodeNameDialog()` / `waitForGraphTypeDialog()`). The full Firefox suite passed afterwards |
+| Edge: native drop-down options could not be selected | Edge's small default window hid part of the controls | Every browser now uses the same 1440×1100 window (`DriverFactory`) |
+| Starting a page could occasionally hang under parallel load | Brython loads `.py` files with synchronous requests, and the simple Python server can drop one under load | `open()` waits up to 30 s for start-up and reloads the page once (logged) before failing |
 
-Install JDK 17+ (including javac), Maven 3.9+, and the browsers. Start the server from the application root, then run the commands in README.md. They do not require this executor's proxy, tool paths, or sandbox configuration. Explicit local driver and browser paths can be supplied if automatic driver resolution is unavailable.
+## Application issues (not test failures)
 
-The tested requirements and independent expected paths/costs are documented in README.md. No incorrect algorithm result was observed in the asserted cases. The greedy implementation's documented single-branch behavior and IDS's hidden depth input remain application limitations; the suite does not claim to prove algorithm completeness.
+Besides the 4 `@known-bug` scenarios, two documented application limitations are taken into
+account by the tests:
 
-## Final outcomes
-
-| Browser | Mode | Passed | Failed / errored | Filtered |
-|---|---|---:|---:|---:|
-| Google Chrome 157.0.8103.78 | Smoke | 1 | 0 / 0 | 15 |
-| Google Chrome 157.0.8103.78 | Serial | 16 | 0 / 0 | 0 |
-| Google Chrome 157.0.8103.78 | Parallel (3) | 16 | 0 / 0 | 0 |
-| Firefox 160.0 | Serial | 16 | 0 / 0 | 0 |
-| Firefox 160.0 | Parallel (3) | 16 | 0 / 0 | 0 |
-| Edge 155.0.4283.62 | Serial | 16 | 0 / 0 | 0 |
-| Edge 155.0.4283.62 | Parallel (3) | 16 | 0 / 0 | 0 |
-| Chromium 156.0.8078.79 | Serial | 16 | 0 / 0 | 0 |
-| Chromium 156.0.8078.79 | Parallel (3) | 16 | 0 / 0 | 0 |
-
-The smoke run executed one scenario and filtered fifteen. Every full run executed all sixteen with zero skipped scenarios. All listed results were executed; none are unverified. Parallel full runs used three scenario workers. Total final full-run executions across Google Chrome, Firefox, and Edge: **96 passed, 0 failed, 0 errored, 0 skipped**. Chromium runs are additional verification.
-
-HTML, JSON and JUnit XML reports are included in the submission archive under `verification/<run>/`. `verification/outcomes.json` contains these counts. The browser logs retain versions, outcomes and non-fatal warnings. Earlier failed attempts are explained above and retained as diagnostic logs.
+- **IDS depth input:** the app hides the depth field for IDS but still reads its value. The page
+  object therefore selects DLS, sets the depth, then selects IDS, using only visible controls.
+- **Greedy search** commits to one neighbour and can get stuck (the app documents this). The data
+  row `trap-greedy` expects exactly that, and `search.feature` only tests its heuristic choice.

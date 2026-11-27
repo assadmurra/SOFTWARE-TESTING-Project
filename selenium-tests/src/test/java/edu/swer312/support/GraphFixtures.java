@@ -38,10 +38,17 @@ public final class GraphFixtures {
      * {@code graph.nodes}). In that case the application is expected to show an alert.
      */
     public static OptionalInt expectedNodeCount(String name) throws IOException {
-        String text;
         try (InputStream in = open(name)) {
-            text = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            return countNodes(new String(in.readAllBytes(), StandardCharsets.UTF_8));
         }
+    }
+
+    /** Same as {@link #expectedNodeCount(String)} for any graph file, e.g. one the app exported. */
+    public static OptionalInt expectedNodeCount(Path file) throws IOException {
+        return countNodes(Files.readString(file, StandardCharsets.UTF_8));
+    }
+
+    private static OptionalInt countNodes(String text) {
         try {
             Map<String, Object> document = new Json().toType(text, Json.MAP_TYPE);
             if (document != null

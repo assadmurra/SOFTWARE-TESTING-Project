@@ -12,6 +12,8 @@
     <baseUrl>http://localhost:8000</baseUrl>
     <parallel>false</parallel>
     <threads>3</threads>
+    <!-- Cucumber tag expression; scenarios documenting open application bugs are excluded by default -->
+    <tags>not @known-bug</tags>
   </properties>
   <dependencies>
     <dependency>
@@ -23,6 +25,13 @@
     <dependency>
       <groupId>io.cucumber</groupId>
       <artifactId>cucumber-java</artifactId>
+      <version>7.30.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Shares one ScenarioContext between all step classes of a scenario (dependency injection) -->
+    <dependency>
+      <groupId>io.cucumber</groupId>
+      <artifactId>cucumber-picocontainer</artifactId>
       <version>7.30.0</version>
       <scope>test</scope>
     </dependency>
@@ -110,6 +119,7 @@
             <browser>${browser}</browser>
             <headless>${headless}</headless>
             <baseUrl>${baseUrl}</baseUrl>
+            <cucumber.filter.tags>${tags}</cucumber.filter.tags>
             <cucumber.execution.parallel.enabled>${parallel}</cucumber.execution.parallel.enabled>
             <cucumber.execution.parallel.config.strategy>fixed</cucumber.execution.parallel.config.strategy>
             <cucumber.execution.parallel.config.fixed.parallelism>${threads}</cucumber.execution.parallel.config.fixed.parallelism>

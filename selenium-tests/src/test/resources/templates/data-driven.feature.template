@@ -4,7 +4,7 @@
 #  To add a test case, add a row to the data file; it runs automatically.
 #  Template: src/test/resources/templates/data-driven.feature.template
 # =============================================================================
-@data
+@data @regression
 Feature: Data-driven search cases from {{SOURCE}}
   Each row of the external data file is one scenario: upload the row's graph,
   run the row's algorithm and compare the visible result with the row's
