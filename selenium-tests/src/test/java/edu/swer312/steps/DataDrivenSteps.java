@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import edu.swer312.context.ScenarioContext;
-import edu.swer312.pages.VisualizerPage;
+import edu.swer312.pages.components.ResultsPanel;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import java.util.List;
@@ -34,7 +34,7 @@ public class DataDrivenSteps {
      */
     @Then("the search outcome matches")
     public void theSearchOutcomeMatches(DataTable table) {
-        VisualizerPage page = context.getPage();
+        ResultsPanel results = context.getPage().results();
         List<String> alerts = context.getAlerts();
         Map<String, String> expected = table.asMap(String.class, String.class);
         String outcome = cell(expected, "outcome");
@@ -43,22 +43,22 @@ public class DataDrivenSteps {
         switch (outcome) {
             case "found" -> {
                 assertTrue(alerts.isEmpty(), "Unexpected alert(s): " + alerts);
-                SearchSteps.assertPathFound(page, cell(expected, "path"));
-                assertEquals(Double.parseDouble(cell(expected, "cost")), page.pathCost(), 0.00001, "path cost");
+                SearchSteps.assertPathFound(results, cell(expected, "path"));
+                assertEquals(Double.parseDouble(cell(expected, "cost")), results.pathCost(), 0.00001, "path cost");
             }
             case "no_path" -> {
                 assertTrue(alerts.isEmpty(), "Unexpected alert(s): " + alerts);
-                assertFalse(page.isSuccess(), "Expected no path, but got: " + page.resultText());
-                assertTrue(page.path().isEmpty(), "Expected an empty path, but got " + page.path());
+                assertFalse(results.isSuccess(), "Expected no path, but got: " + results.text());
+                assertTrue(results.path().isEmpty(), "Expected an empty path, but got " + results.path());
                 if (!message.isEmpty()) {
-                    assertTrue(page.resultText().contains(message),
-                            "Status '" + page.resultText() + "' should contain '" + message + "'");
+                    assertTrue(results.text().contains(message),
+                            "Status '" + results.text() + "' should contain '" + message + "'");
                 }
             }
             case "alert" -> {
                 assertTrue(alerts.stream().anyMatch(alert -> alert.contains(message)),
                         "Expected an alert containing '" + message + "', alerts were " + alerts);
-                assertFalse(page.isSuccess(), "Search should not have succeeded after an alert");
+                assertFalse(results.isSuccess(), "Search should not have succeeded after an alert");
             }
             default -> fail("Unknown outcome '" + outcome + "'");
         }
@@ -66,7 +66,7 @@ public class DataDrivenSteps {
         // The traversal order is optional and can be checked for successful and failed searches.
         String traversal = cell(expected, "traversal");
         if (!traversal.isEmpty()) {
-            assertEquals(List.of(traversal.split(">")), page.traversal(), "traversal");
+            assertEquals(List.of(traversal.split(">")), results.traversal(), "traversal");
         }
     }
 

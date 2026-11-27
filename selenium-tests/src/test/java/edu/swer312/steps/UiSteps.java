@@ -29,17 +29,17 @@ public class UiSteps {
 
     @When("I select {string}")
     public void iSelect(String algorithm) {
-        page().selectAlgorithm(algorithm, 2);
+        page().algorithm().select(algorithm, 2);
     }
 
     @Then("the depth control is {word}")
     public void theDepthControlIs(String state) {
-        assertEquals(state.equals("visible"), page().isDepthControlVisible(), "depth control " + state);
+        assertEquals(state.equals("visible"), page().algorithm().isDepthControlVisible(), "depth control " + state);
     }
 
     @Then("the algorithm info shows {string}")
     public void theAlgorithmInfoShows(String title) {
-        assertEquals(title, page().algorithmInfoTitle());
+        assertEquals(title, page().algorithm().infoTitle());
     }
 
     // ---------------------------------------------------------------------------------
@@ -64,7 +64,8 @@ public class UiSteps {
 
     @Then("the {string} tool is active")
     public void theToolIsActive(String tool) {
-        assertTrue(page().isToolActive(tool.toLowerCase().replace(' ', '-')), tool + " should be the active tool");
+        String toolId = tool.toLowerCase().replace(' ', '-');
+        assertTrue(page().canvas().isToolActive(toolId), tool + " should be the active tool");
     }
 
     // ---------------------------------------------------------------------------------
@@ -73,7 +74,7 @@ public class UiSteps {
 
     @When("I open the {string} example")
     public void iOpenTheExample(String example) {
-        page().openExample(example);
+        page().graph().openExample(example);
     }
 
     @When("I confirm clearing the graph")
@@ -94,7 +95,7 @@ public class UiSteps {
 
     @When("I switch the graph type to {word}")
     public void iSwitchTheGraphTypeTo(String type) {
-        page().selectGraphType(type);
+        page().graph().selectGraphType(type);
     }
 
     @When("I confirm the graph type change")
@@ -111,11 +112,11 @@ public class UiSteps {
 
     @Then("the graph type indicator shows {string}")
     public void theGraphTypeIndicatorShows(String type) {
-        assertEquals(type, page().graphTypeIndicator());
+        assertEquals(type, page().graph().graphTypeIndicator());
     }
 
     @Then("the graph type selector shows {string}")
     public void theGraphTypeSelectorShows(String value) {
-        assertEquals(value, page().selectedGraphType());
+        assertEquals(value, page().graph().selectedGraphType());
     }
 }

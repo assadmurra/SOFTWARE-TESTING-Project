@@ -70,8 +70,16 @@ selenium-tests/
 └── src/test/
     ├── java/edu/swer312/
     │   ├── RunCucumberTest.java    Cucumber runner (JUnit Platform Suite)
-    │   ├── pages/
-    │   │   └── VisualizerPage.java     PAGE OBJECT: every locator, action and wait
+    │   ├── pages/                  PAGE OBJECTS: every locator, action and wait
+    │   │   ├── BasePage.java           shared driver, waits, find / click helpers
+    │   │   ├── VisualizerPage.java     the page: composes the components below
+    │   │   └── components/
+    │   │       ├── GraphPanel.java         load graph files, statistics, graph type, examples
+    │   │       ├── CanvasComponent.java    draw nodes and edges, tools, node dialogs
+    │   │       ├── AlgorithmPanel.java     algorithm drop-down, depth limit, info panel
+    │   │       ├── PlaybackControls.java   speed, Start, Pause / Resume, Stop, step buttons
+    │   │       ├── ResultsPanel.java       search result and Live Data Panel
+    │   │       └── ExportMenu.java         save and export buttons
     │   ├── steps/                  STEP DEFINITIONS (Given / When / Then), one class per area
     │   │   ├── SearchSteps.java        open app, load graph, run search, check result
     │   │   ├── CanvasSteps.java        draw nodes and edges with the mouse
@@ -96,23 +104,45 @@ selenium-tests/
 
 ## 3. Design pattern: Page Object Model (POM)
 
-The application is a single page, so it has one page object:
-[`VisualizerPage`](src/test/java/edu/swer312/pages/VisualizerPage.java).
+The application is a single page with several distinct areas, so the page object is built from
+**components** (the *page component* form of POM):
 
-- **Locators are declared once**, at the top of the class, as `By` constants grouped by screen area:
+```
+VisualizerPage  ── has a ──>  GraphPanel        (graph files, statistics, graph type, examples)
+                              CanvasComponent   (drawing, tools, node dialogs)
+                              AlgorithmPanel    (algorithm, depth limit, info panel)
+                              PlaybackControls  (speed, Start, Pause, Stop, step)
+                              ResultsPanel      (result panel, Live Data Panel)
+                              ExportMenu        (save and export)
+
+All seven classes extend BasePage (driver, explicit waits, find / click helpers).
+```
+
+| Class | Responsibility |
+|---|---|
+| [`BasePage`](src/test/java/edu/swer312/pages/BasePage.java) | Holds the scenario's `WebDriver` and default `WebDriverWait`, plus the helpers every page object needs: `find`, `click` (waits until clickable), `waitUntilVisible`, the fluent `waitForAlertOr`, and the negative wait `staysUnchanged` |
+| [`VisualizerPage`](src/test/java/edu/swer312/pages/VisualizerPage.java) | The page itself. It creates the six components and exposes them (`page.graph()`, `page.results()`, ...). It keeps the actions that span the whole page: `open()`, `runSearch()` (uses the playback controls and the results panel), browser dialogs, theme and keyboard shortcuts |
+| [`components/`](src/test/java/edu/swer312/pages/components/) | One class per area of the screen, each with its **own locators** and actions: `GraphPanel`, `CanvasComponent`, `AlgorithmPanel`, `PlaybackControls`, `ResultsPanel`, `ExportMenu` |
+
+- **Locators are declared once**, at the top of the component that owns them, as `By` constants:
   ```java
-  private static final By START_BUTTON   = By.id("btn-start");
-  private static final By RESULT_SUCCESS = By.cssSelector("#search-results .status-success");
-  private static final By PATH_COST      = By.xpath("//*[@id='search-results']//...[span[1]='Path Cost:']/span[2]");
+  public class PlaybackControls extends BasePage {
+      private static final By START_BUTTON = By.id("btn-start");
+      private static final By PAUSE_BUTTON = By.id("btn-pause");
+      ...
   ```
-- **Actions are methods named after what the user does:** `open()`, `load(file)`,
-  `selectAlgorithm(name, depth)`, `runSearch()`, `pause()`, `chooseGraphType(type)`,
-  `export(format)` and so on. Each one contains the clicks, typing and waits it needs.
-- **Results are read through methods:** `path()`, `pathCost()`, `traversal()`,
-  `nodeCount()`, `isSuccess()`.
+- **Actions are methods named after what the user does**, called through the component they
+  belong to:
+  ```java
+  page().graph().load(file, expectedNodes);
+  page().algorithm().select("ucs", 5);
+  page().runSearch();
+  page().results().pathCost();
+  ```
+  Each method contains the clicks, typing and waits it needs.
 - **Step definitions contain no Selenium code and no element IDs** (not a single
-  `org.openqa.selenium` import). They only call the page object and assert. If the HTML of the
-  app changes, only `VisualizerPage` has to be updated.
+  `org.openqa.selenium` import). They only call page objects and assert. If the HTML of one
+  area of the app changes, only that component has to be updated.
 
 The rest of the framework is split by responsibility:
 
@@ -120,7 +150,7 @@ The rest of the framework is split by responsibility:
 |---|---|---|
 | Feature files | `features/*.feature` | WHAT is tested, in plain language |
 | Step definitions | `steps/*Steps.java` | Map each Gherkin sentence to page actions and assertions |
-| Page object | `pages/VisualizerPage.java` | HOW to do it in the browser |
+| Page objects | `pages/BasePage.java`, `pages/VisualizerPage.java`, `pages/components/*` | HOW to do it in the browser |
 | Hooks | `hooks/Hooks.java` | Open a fresh browser before each scenario, close it after |
 | Driver factory | `driver/DriverFactory.java` | Create the requested browser with the same settings |
 | Configuration | `config/TestConfig.java` | Read the command-line settings (`-Dbrowser`, `-Dheadless`, `-DbaseUrl`) in one place |
@@ -357,10 +387,10 @@ excluded on purpose.
 
 | Assignment requirement | Where it is implemented |
 |---|---|
-| 1. Automated testing design pattern (POM) | `pages/VisualizerPage.java`; layers described in section 3 |
+| 1. Automated testing design pattern (POM) | `pages/BasePage.java`, `pages/VisualizerPage.java`, `pages/components/*`; layers described in section 3 |
 | 2. BDD with Cucumber, Gherkin feature files linked to Java steps | `features/*.feature`, `steps/*Steps.java`, `RunCucumberTest.java` |
 | 3. At least 10 BDD scenarios covering different functionality | 103 scenarios across 10 feature files and 3 data sets (section 5) |
 | 4a. Cross-browser testing | `driver/DriverFactory.java`, `run-all-browsers.bat/.sh`; passes on Chrome, Firefox, Edge |
 | 4b. Parallel testing | Cucumber parallel settings in `pom.xml`; isolation per scenario (section 6.2) |
 | 4c. Data-driven testing (Excel, CSV) | `data/searches.csv`, `data/edge-cases.xlsx`, `edu/swer312/data/*` (section 6.3) |
-| 4d. Selenium waiting strategies | explicit and fluent waits in `VisualizerPage` and `Downloads` (section 6.4) |
+| 4d. Selenium waiting strategies | explicit and fluent waits in `BasePage`, the page components and `Downloads` (section 6.4) |
