@@ -1,1 +1,5 @@
 target/
+# Allure output when tests are run outside Maven, and a locally installed Allure tool
+allure-results/
+allure-report/
+.allure/
