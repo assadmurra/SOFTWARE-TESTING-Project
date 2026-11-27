@@ -4,7 +4,9 @@
 #  one browser after another. Inside each browser the scenarios run in parallel.
 #
 #  Before running: start the application from the repository root with
-#      python3 -m http.server 8000
+#      python3 selenium-tests/tools/serve.py
+#  (like "python3 -m http.server 8000", but it does not drop connections when
+#   several browsers load the app at the same time)
 #
 #  Usage:  ./run-all-browsers.sh                 (all scenarios)
 #          ./run-all-browsers.sh -Dtags=@smoke   (only the smoke scenarios)
