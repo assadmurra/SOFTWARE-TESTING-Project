@@ -1,19 +1,13 @@
-Feature: Graph loading and controls
+@ui @regression
+Feature: General controls
+  As a user
+  I want the controls around the canvas to respond correctly
+  So that the visualizer is comfortable to use
+
   Background:
     Given the visualizer is ready
 
-  Scenario: Loading a saved graph restores nodes and edges
-    Given graph "weighted" is loaded
-    Then the graph has 5 nodes and 5 edges
-    When I run "ucs" with depth 5
-    Then the path is "S>B>C>G" with cost 3
-
-  Scenario: A disconnected goal has no route
-    Given graph "disconnected" is loaded
-    When I run "bfs" with depth 5
-    Then no route is reported
-
-  Scenario: Clear result permits another algorithm
+  Scenario: Clearing the result allows another algorithm to run
     Given graph "weighted" is loaded
     When I run "bfs" with depth 5
     And I clear the result
@@ -21,12 +15,29 @@ Feature: Graph loading and controls
     When I run "ucs" with depth 5
     Then the path is "S>B>C>G" with cost 3
 
-  Scenario: Depth control follows algorithm selection
+  Scenario: The depth control appears only for depth-limited search
     When I select "dls"
     Then the depth control is visible
     When I select "bfs"
     Then the depth control is hidden
 
-  Scenario: Theme toggle changes appearance
+  Scenario Outline: The info panel describes the selected algorithm
+    When I select "<value>"
+    Then the algorithm info shows "<title>"
+
+    Examples:
+      | value         | title                     |
+      | ucs           | Uniform Cost Search (UCS) |
+      | astar         | A* Search                 |
+      | bidirectional | Bidirectional Search      |
+
+  Scenario: Keyboard shortcuts select building tools
+    When I press the "E" key
+    Then the "Add Edge" tool is active
+    When I press the "G" key
+    Then the "Set Goal" tool is active
+
+  @smoke
+  Scenario: The theme toggle changes the appearance
     When I toggle the theme
     Then the theme changes

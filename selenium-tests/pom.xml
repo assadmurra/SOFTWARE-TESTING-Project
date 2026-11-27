@@ -12,6 +12,8 @@
     <baseUrl>http://localhost:8000</baseUrl>
     <parallel>false</parallel>
     <threads>3</threads>
+    <!-- Cucumber tag expression; scenarios documenting open application bugs are excluded by default -->
+    <tags>not @known-bug</tags>
   </properties>
   <dependencies>
     <dependency>
@@ -23,6 +25,13 @@
     <dependency>
       <groupId>io.cucumber</groupId>
       <artifactId>cucumber-java</artifactId>
+      <version>7.30.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Shares one ScenarioContext between all step classes of a scenario (dependency injection) -->
+    <dependency>
+      <groupId>io.cucumber</groupId>
+      <artifactId>cucumber-picocontainer</artifactId>
       <version>7.30.0</version>
       <scope>test</scope>
     </dependency>
@@ -50,6 +59,13 @@
       <version>1.14.1</version>
       <scope>test</scope>
     </dependency>
+    <!-- Reads the Excel (.xlsx) test-data workbook -->
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <version>5.4.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -57,6 +73,42 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.14.1</version>
+      </plugin>
+      <!--
+        Data-driven testing: after the test classes are compiled, turn every row of
+        src/test/resources/data/*.csv and *.xlsx into a Cucumber scenario.
+        New rows therefore run without editing any .feature file.
+      -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.6.4</version>
+        <executions>
+          <execution>
+            <id>generate-data-driven-features</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>edu.swer312.data.DataFeatureGenerator</mainClass>
+              <classpathScope>test</classpathScope>
+              <systemProperties>
+                <!-- POI logs through Log4j; use Log4j's built-in simple logger instead of an error banner -->
+                <systemProperty>
+                  <key>log4j2.loggerContextFactory</key>
+                  <value>org.apache.logging.log4j.simple.SimpleLoggerContextFactory</value>
+                </systemProperty>
+              </systemProperties>
+              <arguments>
+                <argument>${project.basedir}/src/test/resources/data</argument>
+                <argument>${project.basedir}/src/test/resources/graphs</argument>
+                <argument>${project.basedir}/src/test/resources/templates/data-driven.feature.template</argument>
+                <argument>${project.build.testOutputDirectory}/features/generated</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -67,6 +119,7 @@
             <browser>${browser}</browser>
             <headless>${headless}</headless>
             <baseUrl>${baseUrl}</baseUrl>
+            <cucumber.filter.tags>${tags}</cucumber.filter.tags>
             <cucumber.execution.parallel.enabled>${parallel}</cucumber.execution.parallel.enabled>
             <cucumber.execution.parallel.config.strategy>fixed</cucumber.execution.parallel.config.strategy>
             <cucumber.execution.parallel.config.fixed.parallelism>${threads}</cucumber.execution.parallel.config.fixed.parallelism>

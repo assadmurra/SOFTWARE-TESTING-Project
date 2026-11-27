@@ -1,5 +1,32 @@
-id,graph,algorithm,depth,result,path,cost
-bfs,weighted,bfs,5,found,S>A>G,16
-ucs,weighted,ucs,5,found,S>B>C>G,3
-astar,weighted,astar,5,found,S>B>C>G,3
-absent,disconnected,bfs,5,missing,,
+id,description,graph,algorithm,depth,outcome,path,cost,traversal,message,tags
+weighted-bfs,BFS picks the route with the fewest edges,weighted,bfs,,found,S>A>G,16,S>A>B>G,,@algorithm @smoke
+weighted-dfs,DFS follows the leftmost branch first,weighted,dfs,,found,S>A>G,16,S>A>G,,@algorithm
+weighted-ucs,UCS finds the cheapest route,weighted,ucs,,found,S>B>C>G,3,S>B>C>G,,@algorithm @smoke
+weighted-astar,A* with a consistent heuristic finds the optimal route,weighted,astar,,found,S>B>C>G,3,S>B>C>G,,@algorithm @smoke
+weighted-greedy,Greedy follows the smallest heuristic,weighted,greedy,,found,S>A>G,16,S>A>G,,@algorithm
+weighted-bidirectional,Bidirectional search alternates forward and backward,weighted,bidirectional,,found,S>A>G,16,S>G>A,,@algorithm
+weighted-dls-2,DLS reaches a goal that is exactly at the limit,weighted,dls,2,found,S>A>G,16,S>A>G,,@algorithm
+weighted-ids-2,IDS repeats shallower iterations before reaching depth 2,weighted,ids,2,found,S>A>G,16,S>S>A>B>S>A>G,,@algorithm
+tree-bfs,BFS explores the tree level by level,tree,bfs,,found,S>A>D>G,8,S>A>B>C>D>E>F>G,,@algorithm
+tree-dfs,DFS dives into the left subtree first,tree,dfs,,found,S>A>D>G,8,S>A>C>D>G,,@algorithm
+tree-ucs,UCS prefers the cheaper right branch,tree,ucs,,found,S>B>F>G,5,S>B>A>E>F>C>G,,@algorithm
+tree-astar,A* finds the UCS route while expanding fewer nodes,tree,astar,,found,S>B>F>G,5,S>A>B>E>F>G,,@algorithm
+tree-greedy,Greedy commits to the lowest heuristic and misses the cheaper route,tree,greedy,,found,S>A>D>G,8,S>A>D>G,,@algorithm
+tree-bidirectional,Bidirectional frontiers meet at node D,tree,bidirectional,,found,S>A>D>G,8,S>G>A>D,,@algorithm
+tree-dls-3,DLS with limit 3 reaches the depth-3 goal,tree,dls,3,found,S>A>D>G,8,S>A>C>D>G,,@algorithm
+tree-ids-3,IDS deepens until the limit reaches 3,tree,ids,3,found,S>A>D>G,8,,,@algorithm
+multigoal-bfs,BFS returns the shallowest of two goals,multigoal,bfs,,found,S>G1,10,S>A>G1,,@algorithm
+multigoal-dfs,DFS reaches the deeper goal first,multigoal,dfs,,found,S>A>B>G2,3,S>A>B>G2,,@algorithm
+multigoal-ucs,UCS returns the cheapest of two goals,multigoal,ucs,,found,S>A>B>G2,3,S>A>B>G2,,@algorithm
+multigoal-astar,A* returns the cheapest of two goals,multigoal,astar,,found,S>A>B>G2,3,S>A>B>G2,,@algorithm
+multigoal-greedy,Greedy is lured by the goal with the lowest heuristic,multigoal,greedy,,found,S>G1,10,S>G1,,@algorithm
+multigoal-bidirectional,Bidirectional search starts backwards from the first goal,multigoal,bidirectional,,found,S>G1,10,S>G1,,@algorithm
+undirected-bfs,BFS on an undirected graph uses the direct edge,undirected,bfs,,found,S>A>G,6,S>A>B>G,,@algorithm
+undirected-dfs,DFS on an undirected graph skips visited neighbours,undirected,dfs,,found,S>A>G,6,S>A>B>G,,@algorithm
+undirected-ucs,UCS relaxes a cheaper detour through B,undirected,ucs,,found,S>B>A>G,4,S>B>A>G,,@algorithm
+undirected-astar,A* relaxes a cheaper detour through B,undirected,astar,,found,S>B>A>G,4,S>B>A>G,,@algorithm
+undirected-bidirectional,Bidirectional search on an undirected graph,undirected,bidirectional,,found,S>A>G,6,S>G>A,,@algorithm
+trap-bfs,BFS escapes the greedy dead end,greedy-trap,bfs,,found,S>B>G,3,S>A>B>G,,@algorithm
+trap-ucs,UCS escapes the greedy dead end,greedy-trap,ucs,,found,S>B>G,3,S>B>A>G,,@algorithm
+trap-astar,A* escapes the greedy dead end,greedy-trap,astar,,found,S>B>G,3,S>A>B>G,,@algorithm
+dangling-bfs,An edge to an undefined node is ignored when loading,dangling-edge,bfs,,found,S>G,1,S>G,,@algorithm

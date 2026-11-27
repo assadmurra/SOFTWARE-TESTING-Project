@@ -1,0 +1,4 @@
+{
+  "metadata": { "is_undirected": false },
+  "nodes": [ { "name": "S", "x": 100, "y": 150, "heuristic": 0, "neighbors": {} } ]
+}

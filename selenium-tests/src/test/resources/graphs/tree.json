@@ -1,0 +1,17 @@
+{
+  "metadata": { "is_undirected": false },
+  "graph": {
+    "nodes": [
+      { "name": "S", "x": 300, "y": 50,  "heuristic": 3, "neighbors": { "A": 2, "B": 1 } },
+      { "name": "A", "x": 150, "y": 150, "heuristic": 1, "neighbors": { "C": 2, "D": 5 } },
+      { "name": "B", "x": 450, "y": 150, "heuristic": 2, "neighbors": { "E": 1, "F": 3 } },
+      { "name": "C", "x": 75,  "y": 250, "heuristic": 5, "neighbors": {} },
+      { "name": "D", "x": 225, "y": 250, "heuristic": 1, "neighbors": { "G": 1 } },
+      { "name": "E", "x": 375, "y": 250, "heuristic": 3, "neighbors": {} },
+      { "name": "F", "x": 525, "y": 250, "heuristic": 1, "neighbors": { "G": 1 } },
+      { "name": "G", "x": 375, "y": 350, "heuristic": 0, "neighbors": {} }
+    ],
+    "source": "S",
+    "goals": ["G"]
+  }
+}
