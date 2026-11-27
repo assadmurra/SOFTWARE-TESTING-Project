@@ -11,7 +11,7 @@ Final verification of the Selenium + Cucumber suite described in [README.md](REA
 | Java / Maven | Temurin JDK 21.0.7 (compiled for Java 17), Apache Maven 3.9.12 |
 | Selenium / Cucumber | Selenium 4.38.0, Cucumber 7.30.0 (JUnit Platform) |
 | Reporting | Cucumber HTML / JSON, Allure (allure-cucumber7-jvm 3.1.1, Allure report 2.46.2 via allure-maven 3.1.0) |
-| Application server | Full runs: `python -m http.server 8000`. Final smoke run: `python selenium-tests/tools/serve.py` (the recommended server, see below) |
+| Application server | `python selenium-tests/tools/serve.py` from the repository root (listens on 127.0.0.1:8000, 128-connection queue) |
 | Browsers | Google Chrome 157.0.8103.80, Mozilla Firefox 161.0, Microsoft Edge 158.0.4370.33 |
 | Drivers | Resolved automatically by Selenium Manager |
 | Mode | Headless, parallel with 4 threads (`-Dparallel=true -Dthreads=4`) |
@@ -21,9 +21,9 @@ Final verification of the Selenium + Cucumber suite described in [README.md](REA
 
 | Browser | Scenarios | Passed | Failed | Errors | Skipped | Time |
 |---|---:|---:|---:|---:|---:|---:|
-| Chrome 157 | 103 | 99 | 0 | 0 | 4 | 458.2 s |
-| Firefox 161 | 103 | 99 | 0 | 0 | 4 | 949.9 s |
-| Edge 158 | 103 | 99 | 0 | 0 | 4 | 493.3 s |
+| Chrome 157 | 103 | 99 | 0 | 0 | 4 | 402.4 s |
+| Firefox 161 | 103 | 99 | 0 | 0 | 4 | 898.9 s |
+| Edge 158 | 103 | 99 | 0 | 0 | 4 | 411.1 s |
 | **Total** | **309** | **297** | **0** | **0** | **12** | |
 
 The skipped scenarios are the 4 `@known-bug` scenarios. They describe correct behaviour that the
@@ -77,7 +77,7 @@ Each browser run produces:
 | Edge: native drop-down options could not be selected | Edge's small default window hid part of the controls | Every browser now uses the same 1440×1100 window (`DriverFactory`) |
 | Allure report generation failed on Windows (`'...' is not recognized as an internal or external command`) | The project was inside a folder whose path contained an `&` character. Windows treats `&` as a command separator, so Allure's launcher `allure.bat` broke on the path | The folder was renamed so the path has no `&`, and the Allure tool is installed in the user folder (`~/.allure`), outside the project. README has a Windows note |
 | Every run printed *"The classpath resource selector 'features' should not be used to select features in a package"* | The runner selected the features with `@SelectClasspathResource` | Changed to `@SelectPackages("features")`. A dry run confirmed all 103 scenarios are still found, and the warning is gone |
-| Edge smoke run with the plain `python -m http.server`: "The theme toggle changes the appearance" errored (*Application initialization did not finish (attempt 2)*) | The default server queues only 5 connections and drops the rest when 4 browsers load the app at once; the app then hangs on start-up. That run needed 6 automatic reloads across the browsers, and one reload hung too | Use `tools/serve.py` (128-connection queue, listens on 127.0.0.1 only). The same smoke run then passed on all three browsers with **0** reloads |
+| Edge smoke run with the plain `python -m http.server`: "The theme toggle changes the appearance" errored (*Application initialization did not finish (attempt 2)*) | The default server queues only 5 connections and drops the rest when 4 browsers load the app at once; the app then hangs on start-up. That run needed 6 automatic reloads across the browsers, and one reload hung too | Use `tools/serve.py` (128-connection queue, listens on 127.0.0.1 only). The same smoke run, and then the full run on all three browsers, passed with **0** reloads |
 | Starting a page could occasionally hang under parallel load | Brython loads `.py` files with synchronous requests, and the simple Python server can drop one under load | `open()` waits up to 30 s for start-up and reloads the page once (logged) before failing |
 
 ## Application issues (not test failures)
