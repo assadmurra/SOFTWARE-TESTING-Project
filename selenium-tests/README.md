@@ -436,9 +436,9 @@ times are in [VERIFICATION.md](VERIFICATION.md).
 
 | Browser | Version | Scenarios | Passed | Failed | Skipped (`@known-bug`) | Time |
 |---|---|---:|---:|---:|---:|---:|
-| Chrome | 157.0 | 103 | 99 | 0 | 4 | 7 min 38 s |
-| Firefox | 161.0 | 103 | 99 | 0 | 4 | 15 min 50 s |
-| Edge | 158.0 | 103 | 99 | 0 | 4 | 8 min 13 s |
+| Chrome | 157.0 | 103 | 99 | 0 | 4 | 6 min 42 s |
+| Firefox | 161.0 | 103 | 99 | 0 | 4 | 14 min 59 s |
+| Edge | 158.0 | 103 | 99 | 0 | 4 | 6 min 51 s |
 | **Total** | | **309** | **297** | **0** | **12** | |
 
 The 4 skipped scenarios per browser are the `@known-bug` scenarios from section 5.3, which are

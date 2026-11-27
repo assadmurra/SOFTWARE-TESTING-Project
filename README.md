@@ -1,3 +1,21 @@
+# SWER312 Selenium WebDriver Project
+
+**Team:** Assad Murrah (202304007) · Jiovanni Kitlo (202404659) · Miral Zeit (202302849) · Ramez Michael (202303046)
+
+This repository tests the open-source **AI Search Algorithm Visualizer** by
+[ashfaknawshad](https://github.com/ashfaknawshad/aisearch-v2) (MIT license) with Selenium
+WebDriver and Cucumber; the original project README is kept unchanged below.
+
+| | |
+|---|---|
+| BDD scenarios | **103** (Cucumber, Page Object Model, data-driven from CSV and Excel) |
+| Browsers | **Chrome, Firefox and Edge**, with parallel execution |
+| Application bugs found | **4** |
+
+**➡ Test project, how to run it, and results: [selenium-tests/README.md](selenium-tests/README.md)**
+
+---
+
 # 🤖 AI Search Algorithm Visualizer
 
 An interactive web-based visualizer for classic AI search algorithms built with Brython (Python in the browser).
