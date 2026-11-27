@@ -4,7 +4,9 @@ REM  Cross-browser testing: runs the whole suite on Chrome, Firefox and Edge,
 REM  one browser after another. Inside each browser the scenarios run in parallel.
 REM
 REM  Before running: start the application from the repository root with
-REM      python -m http.server 8000
+REM      python selenium-tests\tools\serve.py
+REM  (like "python -m http.server 8000", but it does not drop connections when
+REM   several browsers load the app at the same time)
 REM
 REM  Usage:  run-all-browsers.bat                 (all scenarios)
 REM          run-all-browsers.bat -Dtags=@smoke   (only the smoke scenarios)

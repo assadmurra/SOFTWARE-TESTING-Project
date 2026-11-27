@@ -42,8 +42,15 @@ Manager downloads the matching browser drivers automatically.
 `index.html`), leave this running:
 
 ```sh
-python -m http.server 8000
+python selenium-tests/tools/serve.py
 ```
+
+[`serve.py`](tools/serve.py) serves the application at `http://localhost:8000`, just like
+`python -m http.server 8000`, with two differences: it only listens on this computer (nothing is
+exposed to the network), and it has a larger connection queue (128 waiting connections
+instead of 5). When several browsers open the app at the same time in a parallel run, the
+default server can drop connections. The app loads its Python files with requests that never
+time out, so a dropped request makes the page hang on start-up. The larger queue prevents that.
 
 **Step 2: run the tests** from the `selenium-tests` folder:
 
@@ -98,9 +105,9 @@ target/reports/chrome/
 └── surefire-reports/      JUnit XML and text summary
 ```
 
-> **Windows note:** the Allure tool's Windows launcher fails when the project folder path contains
-> an `&` (for example `Testing&QA`). The tests and the Cucumber report are not affected. To generate
-> Allure reports, keep the project in a folder whose path has no `&`.
+> **Windows note:** the Allure tool's Windows launcher fails when the project is inside a folder
+> whose path contains an `&` character. The tests and the Cucumber report are not affected. To
+> generate Allure reports, keep the project in a folder whose path has no `&`.
 
 ---
 
@@ -322,6 +329,14 @@ without asking, and leave JavaScript alerts open so the tests can read them.
 `run-all-browsers.bat` / `.sh` runs the whole suite on all three browsers with one command.
 The full suite passes on Chrome, Firefox and Edge (see section 7).
 
+**Why the browsers run one after another.** The script runs Chrome, then Firefox, then Edge.
+Each of those runs already uses 4 parallel threads, so 4 browser windows are working at once.
+Running all three browsers at the same time would mean 12 browsers on one computer. On a normal
+laptop that overloads the CPU and memory, the app starts more slowly, and waits start to time out,
+which makes results flaky. The three runs would also share Maven's `target/` folder and overwrite
+each other's reports. One browser at a time keeps the results reliable and gives each browser its
+own report folder, while the 4 threads inside each run still save most of the time.
+
 ### 6.2 Parallel testing
 
 Cucumber's JUnit Platform engine runs scenarios in parallel. It is configured in `pom.xml` and
@@ -338,7 +353,7 @@ Parallel scenarios cannot interfere with each other, because each scenario has:
 - its own `ScenarioContext` (created by picocontainer),
 - its own download folder, and its own temporary copy of every uploaded graph file.
 
-With 4 threads, the full suite (103 scenarios) runs on Chrome in about 6 minutes.
+With 4 threads, the full suite (103 scenarios) runs on Chrome in about 6 to 8 minutes.
 
 ### 6.3 Data-driven testing
 
@@ -365,6 +380,11 @@ How the rows become Cucumber scenarios:
    screen with the row.
 
 **To add a test case, add a row to the CSV or Excel file.** No Java or Gherkin needs to change.
+
+> **Where are the generated feature files?** They are created at build time in
+> `target/test-classes/features/generated/` (one file per CSV file or Excel sheet) and are
+> **not** stored in `src/`. Every build recreates them from the data files, so they never get out
+> of date. Run `mvn test-compile` and open that folder to read them.
 
 ### 6.4 Selenium waiting strategies
 

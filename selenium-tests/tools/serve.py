@@ -1,7 +1,7 @@
 """Static web server for running the Selenium suite against the visualizer.
 
-Same behaviour as ``python -m http.server``, with one difference: a larger
-connection queue. The default queue holds only 5 pending connections; when
+Same behaviour as ``python -m http.server``, with two differences: it only
+listens on this computer (127.0.0.1), and it has a larger connection queue. The default queue holds only 5 pending connections; when
 several browsers load the app in parallel, Windows drops the extra connections,
 and Brython (which loads its .py files with synchronous requests that never time
 out) then hangs on start-up. Measured: 7 of 62 page loads hung with the default
@@ -27,7 +27,8 @@ class ParallelFriendlyServer(http.server.ThreadingHTTPServer):
 def main() -> None:
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(REPOSITORY_ROOT))
-    with ParallelFriendlyServer(("", port), handler) as server:
+    # Listen on this computer only: nothing is exposed to the network (and no firewall prompt).
+    with ParallelFriendlyServer(("127.0.0.1", port), handler) as server:
         print(f"Serving {REPOSITORY_ROOT} at http://localhost:{port}/ (Ctrl+C to stop)")
         server.serve_forever()
 

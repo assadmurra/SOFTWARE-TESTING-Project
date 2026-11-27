@@ -11,7 +11,7 @@ Final verification of the Selenium + Cucumber suite described in [README.md](REA
 | Java / Maven | Temurin JDK 21.0.7 (compiled for Java 17), Apache Maven 3.9.12 |
 | Selenium / Cucumber | Selenium 4.38.0, Cucumber 7.30.0 (JUnit Platform) |
 | Reporting | Cucumber HTML / JSON, Allure (allure-cucumber7-jvm 3.1.1, Allure report 2.46.2 via allure-maven 3.1.0) |
-| Application server | `python -m http.server 8000` from the repository root |
+| Application server | Full runs: `python -m http.server 8000`. Final smoke run: `python selenium-tests/tools/serve.py` (the recommended server, see below) |
 | Browsers | Google Chrome 157.0.8103.80, Mozilla Firefox 161.0, Microsoft Edge 158.0.4370.33 |
 | Drivers | Resolved automatically by Selenium Manager |
 | Mode | Headless, parallel with 4 threads (`-Dparallel=true -Dthreads=4`) |
@@ -41,7 +41,9 @@ and all 4 failed as expected, confirming the bugs are still present:
 | The edge count includes the edges added by switching to undirected | the statistics show 1 edge instead of 2 |
 
 Smoke runs (`run-all-browsers.bat -Dtags=@smoke` and `./run-all-browsers.sh -Dtags=@smoke`)
-executed the 12 `@smoke` scenarios on each browser with 0 failures.
+executed the 12 `@smoke` scenarios on each browser with 0 failures. The final smoke run, with
+`tools/serve.py` as the application server, passed on Chrome, Firefox and Edge (12/12 each) with
+no start-up reloads.
 
 ## Reports
 
@@ -73,8 +75,9 @@ Each browser run produces:
 |---|---|---|
 | Firefox only: "The first node asks for the graph type and a name" failed (*The node name dialog should be open*) | The step checked the dialog once, immediately. The app opens it a moment after the graph-type dialog closes, and Firefox under parallel load is slower than Chrome and Edge | Replaced the immediate check with an explicit wait (`waitForNodeNameDialog()` / `waitForGraphTypeDialog()`). The full Firefox suite passed afterwards |
 | Edge: native drop-down options could not be selected | Edge's small default window hid part of the controls | Every browser now uses the same 1440×1100 window (`DriverFactory`) |
-| Allure report generation failed on Windows (`'...\Testing' is not recognized as an internal or external command`) | The project folder was named `Testing&QA`; Windows treats `&` as a command separator, so Allure's launcher `allure.bat` broke on the path | Folder renamed to `Testing-QA`; the Allure tool is installed in the user folder (`~/.allure`), outside the project. README has a Windows note |
+| Allure report generation failed on Windows (`'...' is not recognized as an internal or external command`) | The project was inside a folder whose path contained an `&` character. Windows treats `&` as a command separator, so Allure's launcher `allure.bat` broke on the path | The folder was renamed so the path has no `&`, and the Allure tool is installed in the user folder (`~/.allure`), outside the project. README has a Windows note |
 | Every run printed *"The classpath resource selector 'features' should not be used to select features in a package"* | The runner selected the features with `@SelectClasspathResource` | Changed to `@SelectPackages("features")`. A dry run confirmed all 103 scenarios are still found, and the warning is gone |
+| Edge smoke run with the plain `python -m http.server`: "The theme toggle changes the appearance" errored (*Application initialization did not finish (attempt 2)*) | The default server queues only 5 connections and drops the rest when 4 browsers load the app at once; the app then hangs on start-up. That run needed 6 automatic reloads across the browsers, and one reload hung too | Use `tools/serve.py` (128-connection queue, listens on 127.0.0.1 only). The same smoke run then passed on all three browsers with **0** reloads |
 | Starting a page could occasionally hang under parallel load | Brython loads `.py` files with synchronous requests, and the simple Python server can drop one under load | `open()` waits up to 30 s for start-up and reloads the page once (logged) before failing |
 
 ## Application issues (not test failures)
