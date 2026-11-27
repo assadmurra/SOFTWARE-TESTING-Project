@@ -44,23 +44,23 @@ public class ExportSteps {
 
     @When("I export the graph as {word}")
     public void iExportTheGraphAs(String format) {
-        page().export(format.toLowerCase());
+        page().exports().export(format.toLowerCase());
     }
 
     @When("I try to export the metrics as CSV")
     public void iTryToExportTheMetricsAsCsv() {
-        page().export("csv");
+        page().exports().export("csv");
         context.getAlerts().add(page().acceptDialog());
     }
 
     @When("I save the graph")
     public void iSaveTheGraph() {
-        page().saveGraph();
+        page().exports().saveGraph();
     }
 
     @When("I load the downloaded file")
     public void iLoadTheDownloadedFile() throws IOException {
-        context.recordAlert(page().load(lastDownload, GraphFixtures.expectedNodeCount(lastDownload)));
+        context.recordAlert(page().graph().load(lastDownload, GraphFixtures.expectedNodeCount(lastDownload)));
     }
 
     // ---------------------------------------------------------------------------------
